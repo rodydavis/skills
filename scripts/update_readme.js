@@ -60,6 +60,10 @@ let readmeContent = `# Agent Skills by @rodydavis
 
 Install skills with https://skills.sh/
 
+\`\`\`
+npx skills add rodydavis/skills
+\`\`\`
+
 `;
 
 function main() {
@@ -67,21 +71,22 @@ function main() {
     const skillFiles = findSkillFiles(skillsDir);
 
 
+
+    readmeContent += '| Skill | Description | Command |\n';
+    readmeContent += '|---|---|---|\n';
+
     skillFiles.forEach(file => {
         const content = fs.readFileSync(file, 'utf8');
         const frontmatter = parseFrontmatter(content);
 
         if (frontmatter && frontmatter.name) {
             console.log(`Found skill: ${frontmatter.name}`);
+            const relativePath = path.relative(path.dirname(readmePath), file);
 
-            readmeContent += `### ${frontmatter.name}\n`;
-            if (frontmatter.description) {
-                readmeContent += `${frontmatter.description}\n\n`;
-            }
+            // Escape pipes in description just in case
+            const description = (frontmatter.description || '').replace(/\|/g, '\\|');
 
-            readmeContent += '```bash\n';
-            readmeContent += `npx skills add rodydavis/${frontmatter.name}\n`;
-            readmeContent += '```\n\n';
+            readmeContent += `| [${frontmatter.name}](./${relativePath}) | ${description} | \`npx skills add rodydavis/${frontmatter.name}\` |\n`;
         }
     });
 
