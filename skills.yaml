@@ -1,5 +1,0 @@
-output: skills
-flat: true
-file_rename: SKILL.md
-patterns:
-  - "https://rodydavis.com/posts/*"
