@@ -1,4 +1,4 @@
-# Set of skills by @rodydavis
+# Agent Skills by @rodydavis
 
 ### flutter-control-and-screenshot
 Guide on how to control a Flutter app using flutter_driver via MCP and capture screenshots.
