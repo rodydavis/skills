@@ -1,5 +1,7 @@
 # Agent Skills by @rodydavis
 
+Install skills with https://skills.sh/
+
 ### flutter-control-and-screenshot
 Guide on how to control a Flutter app using flutter_driver via MCP and capture screenshots.
 
