@@ -72,8 +72,8 @@ function main() {
 
 
 
-    readmeContent += '| Skill | Description | Command |\n';
-    readmeContent += '|---|---|---|\n';
+    readmeContent += '| Skill | Description |\n';
+    readmeContent += '|---|---|\n';
 
     skillFiles.forEach(file => {
         const content = fs.readFileSync(file, 'utf8');
@@ -86,7 +86,7 @@ function main() {
             // Escape pipes in description just in case
             const description = (frontmatter.description || '').replace(/\|/g, '\\|');
 
-            readmeContent += `| [${frontmatter.name}](./${relativePath}) | ${description} | \`npx skills add rodydavis/${frontmatter.name}\` |\n`;
+            readmeContent += `| [${frontmatter.name}](./${relativePath}) | ${description} |\n`;
         }
     });
 
