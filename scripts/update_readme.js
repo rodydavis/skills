@@ -56,11 +56,16 @@ function parseFrontmatter(content) {
     return frontmatter;
 }
 
+let readmeContent = `# Agent Skills by @rodydavis
+
+Install skills with https://skills.sh/
+
+`;
+
 function main() {
     console.log('Scanning for skills...');
     const skillFiles = findSkillFiles(skillsDir);
 
-    let readmeContent = '# Agent Skills by @rodydavis\n\n';
 
     skillFiles.forEach(file => {
         const content = fs.readFileSync(file, 'utf8');
