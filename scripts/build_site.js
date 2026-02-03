@@ -203,6 +203,20 @@ h2, h3, h4, h5, h6 {
     transform: translateX(-5px);
 }
 
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .detail-content {
+        padding: 1.5rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+}
+
 .install-block {
     background: #0d0d0d;
     padding: 1rem;
@@ -316,21 +330,31 @@ function renderPage(title, content, isIndex = false, extra = {}) {
         </div>` : ''}
         ${isIndex ? `<header>
             <h1>Agent Skills</h1>
-            <p style="color: var(--text-secondary); font-size: 1.2rem; opacity: 0.8; margin-bottom: 0.5rem;">by Rody Davis</p>
-            <div style="margin-top: 1.5rem;">
-                <a href="https://github.com/rodydavis/skills" class="btn" style="border-radius: 20px; padding: 0.5rem 1.5rem;">View on GitHub</a>
+            <p style="color: var(--text-secondary); font-size: 1.2rem; opacity: 0.8; margin-bottom: 1.5rem;">by Rody Davis</p>
+            <div class="install-block" style="display: flex; margin-bottom: 0; text-align: left;">
+                <span id="index-install-cmd">npx skills add rodydavis/skills</span>
+                <button class="copy-btn" onclick="copyInstall(this, 'index-install-cmd')">Copy</button>
             </div>
         </header>` : ''}
 
         ${!isIndex ? `
         <div class="install-block">
             <span id="install-cmd">${installCmd}</span>
-            <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
+            <button class="copy-btn" onclick="copyInstall(this, 'install-cmd')">Copy</button>
         </div>
         <div class="detail-content">
             ${content}
         </div>
-        <textarea id="raw-markdown" style="display:none;">${extra.rawMarkdown}</textarea>
+        <textarea id="raw-markdown" style="display:none;">${extra.rawMarkdown}</textarea>` : `
+        <main class="skills-grid">
+            ${content}
+        </main>
+        <footer style="margin-top: 4rem; text-align: center; color: var(--text-secondary); padding-bottom: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+            <a href="rss.xml" style="margin: 0 0.5rem;">RSS</a> • 
+            <a href="https://github.com/rodydavis/skills" style="margin: 0 0.5rem;">GitHub</a>
+        </footer>
+        `}
+
         <script>
             function copyToClipboard(text, btn) {
                 navigator.clipboard.writeText(text).then(() => {
@@ -345,8 +369,8 @@ function renderPage(title, content, isIndex = false, extra = {}) {
                     console.error('Failed to copy: ', err);
                 });
             }
-            function copyInstall(btn) {
-                const text = document.getElementById('install-cmd').innerText;
+            function copyInstall(btn, elementId) {
+                const text = document.getElementById(elementId).innerText;
                 copyToClipboard(text, btn);
             }
             function copyMarkdown(btn) {
@@ -354,14 +378,82 @@ function renderPage(title, content, isIndex = false, extra = {}) {
                 copyToClipboard(text, btn);
             }
         </script>
-        ` : `
-        <main class="skills-grid">
-            ${content}
-        </main>
-        `}
     </div>
 </body>
 </html>`;
+}
+
+// Generate Sitemap
+function generateSitemap(skills) {
+    const baseUrl = 'https://rodydavis.github.io/skills'; // Ideally derived from env or config
+    const today = new Date().toISOString().split('T')[0];
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>${baseUrl}/</loc>
+        <lastmod>${today}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>`;
+
+    skills.forEach(skill => {
+        xml += `
+    <url>
+        <loc>${baseUrl}/${skill.path}/</loc>
+        <lastmod>${today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>`;
+    });
+
+    xml += `
+</urlset>`;
+    return xml;
+}
+
+// Generate RSS Feed
+// Escape XML special characters
+function escapeXml(unsafe) {
+    return unsafe.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+        }
+    });
+}
+
+function generateRSS(skills) {
+    const baseUrl = 'https://rodydavis.github.io/skills';
+    const now = new Date().toUTCString();
+
+    let xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+    <title>Agent Skills</title>
+    <link>${baseUrl}</link>
+    <description>A collection of agent skills by Rody Davis.</description>
+    <lastBuildDate>${now}</lastBuildDate>
+    <language>en-us</language>`;
+
+    skills.forEach(skill => {
+        xml += `
+    <item>
+        <title>${escapeXml(skill.name)}</title>
+        <link>${baseUrl}/${skill.path}/</link>
+        <description>${escapeXml(skill.description)}</description>
+        <guid>${baseUrl}/${skill.path}/</guid>
+        <pubDate>${now}</pubDate>
+    </item>`;
+    });
+
+    xml += `
+</channel>
+</rss>`;
+    return xml;
 }
 
 function build() {
@@ -429,7 +521,12 @@ function build() {
     const indexHtml = renderPage('Agent Skills', cardsHtml, true);
     fs.writeFileSync(path.join(outputDir, 'index.html'), indexHtml);
 
-    console.log(`Build complete! Generated ${skills.length} skill pages.`);
+    // 4. Generate Sitemap & RSS
+    fs.writeFileSync(path.join(outputDir, 'sitemap.xml'), generateSitemap(skills));
+    fs.writeFileSync(path.join(outputDir, 'rss.xml'), generateRSS(skills));
+
+    console.log(`Build complete! Generated ${skills.length} skill pages, sitemap, and RSS feed.`);
 }
 
 build();
+
