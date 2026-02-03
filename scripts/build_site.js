@@ -1,0 +1,322 @@
+const fs = require('fs');
+const path = require('path');
+const MarkdownIt = require('markdown-it');
+
+const md = new MarkdownIt({
+    html: true,
+    linkify: true,
+    typographer: true
+});
+
+const skillsDir = path.join(__dirname, '../skills');
+const outputDir = path.join(__dirname, '../_site');
+const baseHref = process.env.BASE_HREF || '/';
+
+// Ensure output directory exists
+if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+}
+
+// Copy assets if any (none for now, but good practice)
+
+// Theme Colors & Styles
+const css = `
+:root {
+    --bg-color: oklch(0.15 0.02 260);
+    --card-bg: oklch(0.2 0.03 260);
+    --text-primary: oklch(0.95 0.01 260); /* Pearl White */
+    --text-secondary: oklch(0.7 0.02 260); /* Silver-ish */
+    --accent-blue: oklch(0.6 0.2 250); /* Electric Blue */
+    --accent-glow: oklch(0.6 0.2 250 / 0.5);
+    --border-color: oklch(0.3 0.05 260);
+    --shining-silver: oklch(0.85 0.01 260);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--bg-color) 100%);
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(to right, var(--text-primary), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+h2, h3, h4, h5, h6 {
+    color: var(--shining-silver);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Grid Layout */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.skill-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--shining-silver));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.skill-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px -10px var(--accent-glow);
+    border-color: var(--accent-blue);
+}
+
+.skill-card:hover::before {
+    opacity: 1;
+}
+
+.skill-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.skill-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Detail Page */
+.detail-content {
+    background-color: var(--card-bg);
+    padding: 3rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 50px -20px #000;
+}
+
+.detail-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border: 1px solid var(--border-color);
+}
+
+.detail-content pre {
+    background-color: #0d0d0d;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.back-link:hover {
+    color: var(--accent-blue);
+    transform: translateX(-5px);
+}
+`;
+
+function parseFrontmatter(content) {
+    const match = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!match) return { frontmatter: {}, body: content };
+
+    const frontmatter = {};
+    const lines = match[1].split('\n');
+    lines.forEach(line => {
+        const [key, ...valueParts] = line.split(':');
+        if (key && valueParts.length > 0) {
+            frontmatter[key.trim()] = valueParts.join(':').trim();
+        }
+    });
+
+    const body = content.replace(match[0], '').trim();
+    return { frontmatter, body };
+}
+
+function renderPage(title, content, isIndex = false) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <base href="${baseHref}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        ${!isIndex ? `<a href="." class="back-link">← Back to Skills</a>` : ''}
+        <header>
+            <h1>${isIndex ? 'Agent Skills' : title}</h1>
+            ${isIndex ? `
+                <p style="color: var(--text-secondary); font-size: 1.2rem; opacity: 0.8; margin-bottom: 0.5rem;">by Rody Davis</p>
+                <div style="margin-top: 1.5rem;">
+                    <a href="https://github.com/rodydavis/skills" class="btn" style="border-radius: 20px; padding: 0.5rem 1.5rem;">View on GitHub</a>
+                </div>
+            ` : ''}
+        </header>
+        <main class="${isIndex ? 'skills-grid' : 'detail-content'}">
+            ${content}
+        </main>
+    </div>
+</body>
+</html>`;
+}
+
+function build() {
+    console.log('Building site...');
+
+    // Write CSS file
+    fs.writeFileSync(path.join(outputDir, 'style.css'), css);
+    console.log('Generated style.css');
+
+    const skills = [];
+
+    // 1. Scan and Parse Skills - Recursively
+    function walk(dir) {
+        const list = fs.readdirSync(dir);
+        list.forEach(file => {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+            if (stat.isDirectory()) {
+                walk(filePath);
+            } else if (file === 'SKILL.md') {
+                const rawContent = fs.readFileSync(filePath, 'utf8');
+                const { frontmatter, body } = parseFrontmatter(rawContent);
+                const skillName = path.basename(path.dirname(filePath));
+
+                skills.push({
+                    name: frontmatter.name || skillName,
+                    description: frontmatter.description || 'No description provided.',
+                    path: skillName, // use folder name as path slug
+                    content: body
+                });
+            }
+        });
+    }
+
+    walk(skillsDir);
+
+    // 2. Generate Skill Pages
+    skills.forEach(skill => {
+        const htmlContent = md.render(skill.content);
+        const pageHtml = renderPage(skill.name, htmlContent);
+
+        // Create directory for the skill page (prettier URLs: /skill-name/index.html)
+        const skillOutputDir = path.join(outputDir, skill.path);
+        if (!fs.existsSync(skillOutputDir)) {
+            fs.mkdirSync(skillOutputDir, { recursive: true });
+        }
+
+        fs.writeFileSync(path.join(skillOutputDir, 'index.html'), pageHtml);
+    });
+
+    // 3. Generate Index Page
+    const cardsHtml = skills.map(skill => `
+        <article class="skill-card">
+            <div>
+                <h2 class="skill-title">${skill.name}</h2>
+                <p class="skill-desc">${skill.description}</p>
+            </div>
+            <a href="${skill.path}/" class="btn">View Skill</a>
+        </article>
+    `).join('');
+
+    const indexHtml = renderPage('Agent Skills', cardsHtml, true);
+    fs.writeFileSync(path.join(outputDir, 'index.html'), indexHtml);
+
+    console.log(`Build complete! Generated ${skills.length} skill pages.`);
+}
+
+build();

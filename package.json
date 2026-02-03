@@ -1,0 +1,12 @@
+{
+  "name": "skills-microsite",
+  "version": "1.0.0",
+  "description": "Static site generator for skills microsite",
+  "main": "scripts/build_site.js",
+  "scripts": {
+    "build": "node scripts/build_site.js"
+  },
+  "dependencies": {
+    "markdown-it": "^14.0.0"
+  }
+}
