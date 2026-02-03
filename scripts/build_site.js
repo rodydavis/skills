@@ -202,6 +202,76 @@ h2, h3, h4, h5, h6 {
     color: var(--accent-blue);
     transform: translateX(-5px);
 }
+
+.install-block {
+    background: #0d0d0d;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+.action-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.nav-header .back-link {
+    margin-bottom: 0;
+}
+
+.gradient-btn {
+    background: linear-gradient(90deg, var(--accent-blue), #9089fc);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.gradient-btn:hover {
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.gradient-btn:disabled, .copy-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
 `;
 
 function parseFrontmatter(content) {
@@ -221,7 +291,10 @@ function parseFrontmatter(content) {
     return { frontmatter, body };
 }
 
-function renderPage(title, content, isIndex = false) {
+function renderPage(title, content, isIndex = false, extra = {}) {
+    // Note: The user manually updated this command in a previous step, preserving that change.
+    const installCmd = `npx skills add rodydavis/skills --skill ${extra.skillPath}`;
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -236,19 +309,56 @@ function renderPage(title, content, isIndex = false) {
 </head>
 <body>
     <div class="container">
-        ${!isIndex ? `<a href="." class="back-link">← Back to Skills</a>` : ''}
-        <header>
-            <h1>${isIndex ? 'Agent Skills' : title}</h1>
-            ${isIndex ? `
-                <p style="color: var(--text-secondary); font-size: 1.2rem; opacity: 0.8; margin-bottom: 0.5rem;">by Rody Davis</p>
-                <div style="margin-top: 1.5rem;">
-                    <a href="https://github.com/rodydavis/skills" class="btn" style="border-radius: 20px; padding: 0.5rem 1.5rem;">View on GitHub</a>
-                </div>
-            ` : ''}
-        </header>
-        <main class="${isIndex ? 'skills-grid' : 'detail-content'}">
+        ${!isIndex ? `
+        <div class="nav-header">
+            <a href="." class="back-link">← Back to Skills</a>
+            <button class="gradient-btn" onclick="copyMarkdown(this)">Copy as Markdown</button>
+        </div>` : ''}
+        ${isIndex ? `<header>
+            <h1>Agent Skills</h1>
+            <p style="color: var(--text-secondary); font-size: 1.2rem; opacity: 0.8; margin-bottom: 0.5rem;">by Rody Davis</p>
+            <div style="margin-top: 1.5rem;">
+                <a href="https://github.com/rodydavis/skills" class="btn" style="border-radius: 20px; padding: 0.5rem 1.5rem;">View on GitHub</a>
+            </div>
+        </header>` : ''}
+
+        ${!isIndex ? `
+        <div class="install-block">
+            <span id="install-cmd">${installCmd}</span>
+            <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
+        </div>
+        <div class="detail-content">
+            ${content}
+        </div>
+        <textarea id="raw-markdown" style="display:none;">${extra.rawMarkdown}</textarea>
+        <script>
+            function copyToClipboard(text, btn) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = btn.innerText;
+                    btn.innerText = '✅ Copied!';
+                    btn.disabled = true;
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+            function copyInstall(btn) {
+                const text = document.getElementById('install-cmd').innerText;
+                copyToClipboard(text, btn);
+            }
+            function copyMarkdown(btn) {
+                const text = document.getElementById('raw-markdown').value;
+                copyToClipboard(text, btn);
+            }
+        </script>
+        ` : `
+        <main class="skills-grid">
             ${content}
         </main>
+        `}
     </div>
 </body>
 </html>`;
@@ -291,7 +401,10 @@ function build() {
     // 2. Generate Skill Pages
     skills.forEach(skill => {
         const htmlContent = md.render(skill.content);
-        const pageHtml = renderPage(skill.name, htmlContent);
+        const pageHtml = renderPage(skill.name, htmlContent, false, {
+            skillPath: skill.path,
+            rawMarkdown: skill.content
+        });
 
         // Create directory for the skill page (prettier URLs: /skill-name/index.html)
         const skillOutputDir = path.join(outputDir, skill.path);
