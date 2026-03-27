@@ -1,6 +1,6 @@
 ---
 name: async-preact-signals
-description: Explore how to effectively manage asynchronous data with Preact Signals by creating a custom `asyncSignal` that handles loading, error, and data states without breaking the synchronous nature of signals.
+description: "Create an asyncSignal wrapper for Preact Signals that manages loading, error, and data states for Promises while preserving the synchronous signal graph, with automatic request cancellation via AbortController and a type-safe AsyncState class with map/match pattern. Use when handling async data fetching with Preact Signals, implementing request cancellation in signal-based architectures, or building reactive UIs with loading and error states."
 metadata:
   url: https://rodydavis.com/posts/async-preact-signal
   last_modified: Tue, 03 Feb 2026 20:04:16 GMT
@@ -8,6 +8,9 @@ metadata:
 
 # Async Preact Signals
 
+Build a custom `asyncSignal` that wraps Promises in a synchronous signal with loading/error/data states, automatic request cancellation via AbortController, and a type-safe `AsyncState` class for pattern matching.
+
+## The Problem
 
 When working with [signals](https://github.com/preactjs/signals) in Javascript, it is very common to work with async data from [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 
