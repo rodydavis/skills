@@ -1,6 +1,6 @@
 ---
 name: how-to-store-sqlite-as-nosql-store
-description: Discover how to leverage SQLite's JSON support to build a NoSQL-like document store, complete with TTL-based expiration, within this powerful embedded database.
+description: "Build a NoSQL-like document store using SQLite's JSON support with path-based document storage, TTL-based automatic expiration, collection queries via path prefixes, and JSONB support. Use when implementing document storage without a dedicated NoSQL database, adding TTL-based caching to SQLite, or building path-based data hierarchies in embedded databases."
 metadata:
   url: https://rodydavis.com/posts/sqlite/no-sql
   last_modified: Tue, 03 Feb 2026 20:04:37 GMT
@@ -8,6 +8,9 @@ metadata:
 
 # How to store SQLite as NoSQL Store
 
+Use SQLite's JSON support to build a document store with path-based keys, TTL expiration, and collection queries — no separate NoSQL database required.
+
+## Overview
 
 [SQLite](https://www.sqlite.org/) is a very capable edge database that can store various shapes of data.
 

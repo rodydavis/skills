@@ -1,6 +1,6 @@
 ---
 name: building-a-piano-with-flutter
-description: Build a Tiny Piano in Flutter: Learn how to create a fully functional, Flutter Create contest-winning piano app using just 5032 bytes of Dart code, complete with MIDI support and customizable features.
+description: "Build a fully functional piano app in Flutter using under 5KB of Dart code, with MIDI playback via SoundFont files, multi-octave keyboard layout, and customizable key width and label settings. Use when creating musical instrument UIs, implementing MIDI playback in Flutter, or building interactive touch-based applications."
 metadata:
   url: https://rodydavis.com/posts/making-a-piano
   last_modified: Tue, 03 Feb 2026 20:04:26 GMT
@@ -8,6 +8,7 @@ metadata:
 
 # Building A Piano with Flutter
 
+Build a contest-winning Flutter piano app in under 5KB of Dart code, with MIDI playback, multi-octave scrolling keyboard, and customizable settings.
 
 This piano uses only `5032` bytes of Dart Code!
 

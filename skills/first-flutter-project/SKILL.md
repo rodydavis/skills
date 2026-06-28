@@ -1,6 +1,6 @@
 ---
 name: creating-your-first-flutter-project
-description: Dive into the world of Flutter, Google's UI toolkit, and learn how to build cross-platform apps with ease using this introductory guide and accompanying "Flutter Take 5" video series.
+description: "Create a Flutter project from scratch using the CLI, understand the project structure (lib/main.dart, pubspec.yaml), run on desktop and mobile targets with hot reload, and write and execute widget tests with code coverage. Use when setting up a new Flutter project, onboarding new Flutter developers, or establishing a Flutter development workflow with testing."
 metadata:
   url: https://rodydavis.com/posts/first-flutter-project
   last_modified: Tue, 03 Feb 2026 20:04:25 GMT
@@ -8,6 +8,9 @@ metadata:
 
 # Creating Your First Flutter Project
 
+Set up a Flutter project from the command line, understand the key files (`lib/main.dart`, `pubspec.yaml`), run on multiple platforms with hot reload, and write widget tests with code coverage.
+
+## What is Flutter
 
 Flutter is a UI Toolkit from Google allowing you to create expressive and unique experiences unmatched on any platform. You can write your UI once and run it everywhere. Yes everywhere! Web, iOS, Android, Windows, Linux, MacOS, Raspberry PI and much more…
 
