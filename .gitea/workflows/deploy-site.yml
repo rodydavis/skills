@@ -1,0 +1,45 @@
+name: Deploy Microsite
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          BASE_HREF: /
+
+      - name: Deploy Static Pages
+        if: github.event_name != 'pull_request'
+        uses: https://git.rodydavis.dev/rodydavis/shared-actions/pages-deploy@main
+        with:
+          path: './_site'
+          domain: 'skills.rodydavis.dev'
+          git_token: ${{ secrets.GIT_TOKEN }}
+          ssh_key: ${{ secrets.TRUENAS_SSH_KEY }}
